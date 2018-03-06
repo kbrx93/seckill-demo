@@ -17,7 +17,7 @@ CREATE TABLE seckill (
   COMMENT '库存数量',
   `start_time`  TIMESTAMP    NOT NULL
   COMMENT '秒杀开始时间',
-  `end_time`    TIMESTAMP    NOT NULL
+  end_time    TIMESTAMP    NOT NULL
   COMMENT '秒杀结束时间',
   `create_time` TIMESTAMP    NOT NULL DEFAULT current_timestamp
   COMMENT '创建时间',

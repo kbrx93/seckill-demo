@@ -2,6 +2,7 @@ package com.kbrx93.service;
 
 import com.kbrx93.dao.SeckillDao;
 import com.kbrx93.dao.SuccessKilledDao;
+import com.kbrx93.dao.cache.RedisDao;
 import com.kbrx93.dto.Exposer;
 import com.kbrx93.dto.SeckillExecution;
 import com.kbrx93.entity.Seckill;
@@ -35,6 +36,9 @@ public class SeckillServiceImpl implements SeckillService {
     private SeckillDao seckillDao;
 
     @Autowired
+    private RedisDao redisDao;
+
+    @Autowired
     private SuccessKilledDao successKilledDao;
 
     /**
@@ -42,16 +46,35 @@ public class SeckillServiceImpl implements SeckillService {
      */
     private String slat = "werweriowucfjkj]]34823897*(&*&&^)&";
 
+    @Override
     public List<Seckill> getSeckillList() {
         return seckillDao.queryAll(0, 4);
     }
 
+    @Override
     public Seckill getById(long seckillId) {
         return seckillDao.queryById(seckillId);
     }
 
+    @Override
     public Exposer exportSeckillUrl(long seckillId) {
-        Seckill seckill = seckillDao.queryById(seckillId);
+        //优化点:缓存优化:超时的基础上维护一致性
+        //1。访问redi
+
+
+        Seckill seckill = redisDao.getSeckill(seckillId);
+        if (seckill == null) {
+            //2.访问数据库
+            seckill = seckillDao.queryById(seckillId);
+            if (seckill == null) {
+                //说明查不到这个秒杀产品的记录
+                return new Exposer(false, seckillId);
+            } else {
+                //3,放入redis
+                redisDao.putSeckill(seckill);
+            }
+
+        }
 
         // seckill为空则说明没有此秒杀对象
         if (seckill == null) {
@@ -75,7 +98,9 @@ public class SeckillServiceImpl implements SeckillService {
         return md5;
     }
 
-    @Transactional
+    @Override
+    @Transactional(rollbackFor = {SeckillCloseException.class,
+            RepeatKillException.class, SeckillException.class})
     public SeckillExecution executeSeckill(long seckillId, long userPhone, String md5) throws SeckillException {
         if (md5 == null || !getMd5(seckillId).equals(md5)) {
             throw new SeckillException("seckill data rewrite");
