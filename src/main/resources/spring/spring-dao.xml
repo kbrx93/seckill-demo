@@ -16,11 +16,9 @@
         <property name="jdbcUrl" value="${jdbc.url}"/>
         <property name="user" value="${jdbc.username}"/>
         <property name="password" value="${jdbc.password}"/>
-        
         <!-- 连接池自定义设置 -->
         <!-- 最大连接数 -->
         <property name="maxPoolSize" value="10"/>
-        
         <!-- 最小连接数 -->
         <property name="minPoolSize" value="5"/>
         
@@ -64,7 +62,7 @@ SQLException,如设为0则无限期等待。单位毫秒。Default: 0 -->
     </bean>
 
     <bean id="redis" class="com.kbrx93.dao.cache.RedisDao">
-        <constructor-arg index="0" value="localhost"/>
+        <constructor-arg index="0" value="127.0.0.1"/>
         <constructor-arg index="1" value="6379"/>
     </bean>
 </beans>
