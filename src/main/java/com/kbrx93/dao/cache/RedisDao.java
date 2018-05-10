@@ -26,23 +26,20 @@ public class RedisDao {
     public Seckill getSeckill(long seckillId) {
         //redis操作逻辑
         try {
-            Jedis jedis = jedisPool.getResource();
-            try {
+            try (Jedis jedis = jedisPool.getResource()) {
                 String key = "seckill:" + seckillId;
-                //并没有实现哪部序列化操作
+                //并没有实现内部序列化操作
                 //采用自定义序列化
                 //protostuff: pojo.
                 byte[] bytes = jedis.get(key.getBytes());
                 //缓存重获取到
                 if (bytes != null) {
-                    Seckill seckill=schema.newMessage();
-                    ProtostuffIOUtil.mergeFrom(bytes,seckill,schema);
+                    Seckill seckill = schema.newMessage();
+                    ProtostuffIOUtil.mergeFrom(bytes, seckill, schema);
                     //seckill被反序列化
 
                     return seckill;
                 }
-            }finally {
-                jedis.close();
             }
         }catch (Exception e) {
 
